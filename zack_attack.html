@@ -22,6 +22,10 @@ var materias;
 var score = 0;
 var scoreText;
 var nbMaterias = 12;
+var left=false;
+var right=false;
+var jump=false;
+var music;
 
 /**
  * Préchargement des éléments utiles pour l'application (ex : les images)
@@ -39,9 +43,18 @@ function preload() {
      * On peut aussi ajouter des vues par exemple lorsque le personnage attaque, saute ou s'accroupi bref, c'est pratique
      * (mais chiant à faire)
      */
+    game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL; // Configuration du mode plein écran
+    game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT; // TODO : Comprendre ces deux lignes
+    
+    game.load.spritesheet('buttonleft', 'assets/buttons/buttonleft.png',50,50);
+    game.load.spritesheet('buttonright', 'assets/buttons/buttonright.png',50,50);
+    game.load.spritesheet('buttonjump', 'assets/buttons/buttonjump.png',50,50);
+    
+    game.load.audio('music', 'assets/sound/ff7Fighting3.mp3');
 }
 
 function create() {
+	if (!game.device.desktop){ game.input.onDown.add(gofull, this); }
 	// Initialisation du terrain
 	game.physics.startSystem(Phaser.Physics.ARCADE); // TODO : Comprendre le sens et l'utilité des Physics
 	game.add.sprite(0, 0, 'midgar'); // Ajout du décors ({0,0} représente le coin haut-gauche)
@@ -86,6 +99,34 @@ function create() {
     }
     
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#CBCBCB' });
+    
+    /*music = game.add.audio('music');
+    music.loop = true;
+    music.play();*/
+    
+    // Controls avec un smartphone
+    if (!game.device.desktop /*|| true*/) {
+    	buttonleft = game.add.button(40, game.world.height - 55, 'buttonleft', null, this, 5, 5, 5, 5);
+    	buttonleft.fixedToCamera = true;
+    	buttonleft.events.onInputOver.add(function(){left=true;});
+        buttonleft.events.onInputOut.add(function(){left=false;});
+        buttonleft.events.onInputDown.add(function(){left=true;});
+        buttonleft.events.onInputUp.add(function(){left=false;});
+        
+    	buttonright = game.add.button(100, game.world.height - 55, 'buttonright', null, this, 5, 5, 5, 5);
+    	buttonright.fixedToCamera = true;
+    	buttonright.events.onInputOver.add(function(){right=true;});
+    	buttonright.events.onInputOut.add(function(){right=false;});
+    	buttonright.events.onInputDown.add(function(){right=true;});
+    	buttonright.events.onInputUp.add(function(){right=false;});
+    	
+    	buttonjump = game.add.button(game.world.width - 90, game.world.height - 55, 'buttonjump', null, this, 5, 5, 5, 5);  //game, x, y, key, callback, callbackContext, overFrame, outFrame, downFrame, upFrame
+        buttonjump.fixedToCamera = true;  //our buttons should stay on the same place  
+        buttonjump.events.onInputOver.add(function(){jump=true;});
+        buttonjump.events.onInputOut.add(function(){jump=false;});
+        buttonjump.events.onInputDown.add(function(){jump=true;});
+        buttonjump.events.onInputUp.add(function(){jump=false;});
+    }
 }
 
 function update() {
@@ -93,14 +134,14 @@ function update() {
 	game.physics.arcade.collide(materias, platforms);
 	game.physics.arcade.overlap(player, materias, collectMateria, null, this);
     player.body.velocity.x = 0;
-    if (cursors.left.isDown)
+    if (cursors.left.isDown || left)
     {
         //  Déplacement gauche
         player.body.velocity.x = -350;
 
         player.animations.play('left');
     }
-    else if (cursors.right.isDown)
+    else if (cursors.right.isDown || right)
     {
         //  Déplacement droite
         player.body.velocity.x = 350;
@@ -115,7 +156,7 @@ function update() {
     }
 
     //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down)
+    if ((cursors.up.isDown || jump) && player.body.touching.down)
     {
         player.body.velocity.y = -600;
     }
@@ -123,6 +164,8 @@ function update() {
     if (nbMaterias==0) {
     	scoreText.text = "Jeu terminé";
     }
+    
+    if (game.input.currentPointers == 0){ fire=false; right=false; left=false;}
 }
 
 function collectMateria (player, materia) {
@@ -133,6 +176,10 @@ function collectMateria (player, materia) {
     nbMaterias--;
     scoreText.text = 'Score: ' + score;
 
+}
+
+function gofull() {
+	game.scale.startFullScreen(false);
 }
 
 </script>
