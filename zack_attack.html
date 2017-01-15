@@ -1,0 +1,141 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>Zack Attack !</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var platforms;
+var player;
+var cursors;
+var materias;
+var score = 0;
+var scoreText;
+var nbMaterias = 12;
+
+/**
+ * Préchargement des éléments utiles pour l'application (ex : les images)
+ * Cette fonction est appelée une fois au début du jeu
+ */
+function preload() {
+	game.load.image('midgar', 'assets/midgar.png');
+    game.load.image('ground', 'assets/platform.png');
+    game.load.image('materia', 'assets/materia.png');
+    game.load.spritesheet('zack', 'assets/zack.png', 64, 96); // Chargement du sprite
+    /* Sprite:
+     * Un sprite contient plusieurs représentations d'un élément dans différentes positions
+     * Par exemple ici, on représente Zack dans ses déplacements gauche et droite, et son état au repos
+     * De cette façon, on peut faire varier l'affichage selon si on se déplace d'un côté ou d'un autre
+     * On peut aussi ajouter des vues par exemple lorsque le personnage attaque, saute ou s'accroupi bref, c'est pratique
+     * (mais chiant à faire)
+     */
+}
+
+function create() {
+	// Initialisation du terrain
+	game.physics.startSystem(Phaser.Physics.ARCADE); // TODO : Comprendre le sens et l'utilité des Physics
+	game.add.sprite(0, 0, 'midgar'); // Ajout du décors ({0,0} représente le coin haut-gauche)
+	platforms = game.add.group(); // TODO : Comprendre les histoires de group
+	platforms.enableBody = true; // Permettre l'affichage ? Les interactions ? A creuser...
+	var ground = platforms.create(0, game.world.height - 64, 'ground');
+	ground.scale.setTo(2, 2);
+	ground.body.immovable = true;
+    var ledge = platforms.create(400, 400, 'ground');
+    ledge.body.immovable = true;
+    ledge = platforms.create(-150, 250, 'ground');
+    ledge.body.immovable = true;
+    
+    // Joueur
+    player = game.add.sprite(32, game.world.height - 200, 'zack');
+    game.physics.arcade.enable(player); // On retrouve ici le physics. Il doit y avoir des fonctionnalités propres pour le joueur selon le physics choisi
+    player.body.bounce.y = 0;
+    player.body.gravity.y = 1000;
+    player.body.collideWorldBounds = true;
+
+    player.animations.add('left', [0, 1, 2, 3], 10, true); // Définir les animations du sprite. Le tableau semble définir les parties du sprite à choisir et alterner pour les déplacements
+    player.animations.add('right', [5, 6, 7, 8], 10, true); // TODO : Trouver et comprendre ce qu'indiquent chaque paramètre
+    
+    cursors = game.input.keyboard.createCursorKeys(); // Mise en place des listeners pour le keyboard. TODO : Voir ici la version smartphone
+    
+    materias = game.add.group(); // Materia : Orbe de pouvoir du jeu FF7 : ici représente l'objet que le personnage doit attraper
+
+    materias.enableBody = true;
+
+    //  Here we'll create 12 of them evenly spaced apart
+    for (var i = 0; i < nbMaterias; i++)
+    {
+        //  Create a materia inside of the 'materias' group
+        var materia = materias.create(i * 68, 0, 'materia');
+
+        //  Let gravity do its thing
+        materia.body.gravity.y = 800;
+        materia.width=40;
+        materia.height=40;
+        //  This just gives each materia a slightly random bounce value
+        materia.body.bounce.y = 0.7 + Math.random() * 0.2;
+    }
+    
+    scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#CBCBCB' });
+}
+
+function update() {
+	game.physics.arcade.collide(player, platforms);
+	game.physics.arcade.collide(materias, platforms);
+	game.physics.arcade.overlap(player, materias, collectMateria, null, this);
+    player.body.velocity.x = 0;
+    if (cursors.left.isDown)
+    {
+        //  Déplacement gauche
+        player.body.velocity.x = -350;
+
+        player.animations.play('left');
+    }
+    else if (cursors.right.isDown)
+    {
+        //  Déplacement droite
+        player.body.velocity.x = 350;
+
+        player.animations.play('right');
+    }
+    else
+    {
+        player.animations.stop();
+
+        player.frame = 4;
+    }
+
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.body.velocity.y = -600;
+    }
+    
+    if (nbMaterias==0) {
+    	scoreText.text = "Jeu terminé";
+    }
+}
+
+function collectMateria (player, materia) {
+
+    // Removes the materia from the screen
+    materia.kill();
+    score += 10;
+    nbMaterias--;
+    scoreText.text = 'Score: ' + score;
+
+}
+
+</script>
+
+</body>
+</html>
