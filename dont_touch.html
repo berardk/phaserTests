@@ -1,0 +1,97 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>dont_touch</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update});
+
+function preload() {
+	game.load.image('grass', 'assets/cars/grass.png');
+    game.load.image('f1', 'assets/cars/f1_001.png');
+}
+
+var sprite;
+var speed;
+
+function create() {
+
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.add.tileSprite(0, 0, 1600, 1058, 'grass'); // Affichage du terrain
+    game.world.setBounds(0, 0, 1600, 1058); // On met le monde aux dimensions de l'image
+
+    sprite = game.add.sprite(300, 400, 'f1');
+    sprite.anchor.setTo(0.5, 0.5);
+    game.physics.enable(sprite, Phaser.Physics.ARCADE);
+    game.camera.follow(sprite); // La caméra suit le joueur
+    sprite.body.collideWorldBounds = true; // On rajoute les collisions avec les rebords parce que c'est la merde sinon
+    
+    /*
+    Remarque intermédiaire en attendant de savoir où le mettre :
+    	
+    	Il faut faire attention dans quel ordre on défini les éléments.
+    	Si on crée par exemple le joueur avant le background, ce dernier cachera
+    	le joueur. Il doit y avoir un moyen de définir un niveau de premier-plan/arrière-plan
+    	mais j'ai pas encore cherché de ce côté là. En tout cas, il faudra pas l'oublier dans
+    	B-Race pour le voisinage et les obstacles par exemple. A bon entendeur !
+    */
+    
+}
+
+function update() {
+
+	/* RESET des déplacements avant de les redéfinir à nouveau sinon c'est du caca */
+    sprite.body.velocity.x = 0;
+    sprite.body.velocity.y = 0;
+    sprite.body.angularVelocity = 0; // Changement d'angle pour tourner la tuture !
+
+    if (game.input.keyboard.isDown(Phaser.Keyboard.S)) { // Mode super pilote pour aller à fond les ballons !!
+    	speed = 800;
+    } else {
+    	speed = 300; // Si on est pas pilote on va moins vite, bah ouais !
+    }
+
+    if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) // Si c'est UP, on avance !
+    {
+        game.physics.arcade.velocityFromAngle(sprite.angle, speed, sprite.body.velocity);
+        wheelWatch(); // Une méthode pour pas dupliquer du code (malin hein ?)
+    }
+
+    if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) // Et si c'est down, on recule (Quel génie...)
+    {
+        game.physics.arcade.velocityFromAngle(sprite.angle, -100, sprite.body.velocity);
+        wheelWatch();
+    }
+
+}
+
+/**
+ * WheelWatch, en français RegarderVolant (pour voir si on tourne, en anglais ça fait plus swag)
+ */
+function wheelWatch() {
+	if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
+    {
+        sprite.body.angularVelocity = -150;
+    }
+    else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
+    {
+        sprite.body.angularVelocity = 150;
+    }
+}
+
+
+</script>
+
+</body>
+</html>
