@@ -17,13 +17,20 @@
 
 var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update});
 
+/* Partie déclarative */
+var sprite;
+var speed;
+var tokens;
+var nbTokens=20;
+var score=0;
+var scoreText;
+
+
 function preload() {
 	game.load.image('grass', 'assets/cars/grass.png');
     game.load.image('f1', 'assets/cars/f1_001.png');
+    game.load.image('token', 'assets/materia.png');
 }
-
-var sprite;
-var speed;
 
 function create() {
 
@@ -47,10 +54,26 @@ function create() {
     	B-Race pour le voisinage et les obstacles par exemple. A bon entendeur !
     */
     
+    tokens = game.add.group();
+    tokens.enableBody = true;
+    var x,y;
+    for (var i = 0; i < nbTokens; i++)
+    {
+    	x=Math.random()*1600 -10;
+    	y=Math.random()*1058 -10;
+        //  Create a token inside of the 'tokens' group
+        var token = tokens.create(x, y, 'token');
+
+        token.width=40;
+        token.height=40;
+    }
+    
+    scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#CBCBCB' });
+    
 }
 
 function update() {
-
+	game.physics.arcade.overlap(sprite, tokens, collectToken, null, this);
 	/* RESET des déplacements avant de les redéfinir à nouveau sinon c'est du caca */
     sprite.body.velocity.x = 0;
     sprite.body.velocity.y = 0;
@@ -88,6 +111,20 @@ function wheelWatch() {
     {
         sprite.body.angularVelocity = 150;
     }
+}
+
+function collectToken (sprite, token) {
+
+    // Removes the materia from the screen
+    token.kill();
+    score += 10;
+    nbTokens--;
+    if(nbTokens==0) {
+    	scoreText.text = 'Jeu terminé avec ' + score + ' points !'
+    } else {
+    	scoreText.text = 'Score: ' + score;
+    }
+
 }
 
 
