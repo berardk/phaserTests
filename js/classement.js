@@ -10,8 +10,6 @@ let Zone = function(nameZone,god) {
 	this.sonL=null;
 	this.sonR=null;
 	
-	
-	
 	/* Methods */
 //	this.nomFonction = function (){
 //  };
@@ -47,11 +45,19 @@ let Zone = function(nameZone,god) {
 		//sconsole.log("----------");
     };
     
-    this.displayList = function (){
-    	console.log(this.name + ":LIST_OF_PLAYERS_" + this.getPlayersCount());
-    	for (let s of this.players)
-    	{
-    		console.log(s.id + ":" + s.pos);
+    this.displayList = function (list){
+    	if (list==null) {
+        	console.log(this.name + ":LIST_OF_PLAYERS_" + this.getPlayersCount());
+        	for (let s of this.players)
+        	{
+        		console.log(s.id + ":" + s.pos);
+        	}
+    	} else {
+    		console.log(this.name + ":LIST_");
+        	for (let s of list)
+        	{
+        		console.log(s.id + ":" + s.pos);
+        	}
     	}
     };
     
@@ -92,24 +98,37 @@ let Zone = function(nameZone,god) {
     	let data = [];
     	if(this.god) {
     		// Je suis la zone 1, je calcule le classement final
+    		let dataL = this.sonL.getDataToSend();
+    		let dataR = this.sonR.getDataToSend();
+    		data = dataL.concat(dataR);
+    		data.sort(this.comparePlayers);
     		
-    	} else if(this.sonL == null || this.sonG == null) {
+    	} else if(this.sonL == null && this.sonG == null) {
     		// Je suis une zone sans fils, j'envoie simplement les bonnes infos
-    		data.push(new Classement(this.getFirstPlayer(), this.getLastPlayer(), this.getPlayersCount()));
+    		data.push(this.getFirstPlayer());
+    		data.push(this.getLastPlayer());
     	} else {
     		// Je suis une zone quelconque, je merge mes infos et ceux de mes fils avant de les envoyer
     		let dataL = this.sonL.getDataToSend();
     		let dataR = this.sonR.getDataToSend();
     		let dataLR = [];
-    		dataLR.concat(dataL,dataR).sort(function(a,b){return (a.name>b.name)-(a.name<b.name)})
+    		dataLR = dataL.concat(dataR);
+    		dataLR.sort(this.comparePlayers);
     		
     		let dataF = [];
-    		dataF.push(new Classement(this.getFirstPlayer(), this.getLastPlayer(), this.getPlayersCount()));
+    		dataF.push(this.getFirstPlayer());
+    		dataF.push(this.getLastPlayer());
     		
-    		a1.concat(a2,a3).sort(function(a,b){return (a.name>b.name)-(a.name<b.name)})
+    		data = dataLR.concat(dataF);
+    		data.sort(this.comparePlayers);
     	}
-    	
+    	d("dataSentBy:" + this.name);
+    	this.displayList(data);
     	return data;
+    };
+    
+    this.comparePlayers = function(a,b) {
+    	return a.pos-b.pos;
     };
     
     this.displayDataToSend = function(){
@@ -153,10 +172,10 @@ d("Création des zones");
 let z1 = new Zone("Zone1", true);
 let z2 = new Zone("Zone2", false);
 let z3 = new Zone("Zone3", false);
-/*var z4 = new Zone("Zone4", false);
+var z4 = new Zone("Zone4", false);
 var z5 = new Zone("Zone5", false);
 var z6 = new Zone("Zone6", false);
-var z7 = new Zone("Zone7", false);*/
+var z7 = new Zone("Zone7", false);
 
 d("Association des zones");
 z1.setSonL(z2);
@@ -164,7 +183,7 @@ z2.setFather(z1);
 z1.setSonR(z3);
 z3.setFather(z1);
 
-/*z2.setSonL(z4);
+z2.setSonL(z4);
 z4.setFather(z2);
 z2.setSonR(z5);
 z5.setFather(z2);
@@ -172,36 +191,69 @@ z5.setFather(z2);
 z3.setSonL(z6);
 z6.setFather(z3);
 z3.setSonR(z7);
-z7.setFather(z3);*/
+z7.setFather(z3);
 
 d("Affichage des familles de zones");
 z1.displayFamily();
 z2.displayFamily();
 z3.displayFamily();
-/*z4.displayFamily();
+z4.displayFamily();
 z5.displayFamily();
 z6.displayFamily();
-z7.displayFamily();*/
+z7.displayFamily();
 
 d("Création des joueurs");
-let p1 = new Player("P1", z2, 2);
-let p2 = new Player("P2", z3, 3);
-let p3 = new Player("P3", z2, 8);
-let p4 = new Player("P4", z2, 15);
-let p5 = new Player("P5", z3, 5);
-let p6 = new Player("P6", z3, 3);
-let p7 = new Player("P7", z2, 4);
-let p8 = new Player("P8", z2, 6);
-let p9 = new Player("P9", z2, 12);
-let p10 = new Player("P10", z3, 15);
+let p1 = new Player("A", z2, 7);
+let p2 = new Player("B", z2, 7);
+let p3 = new Player("C", z2, 5);
+let p4 = new Player("D", z2, 9);
+let p5 = new Player("E", z2, 8);
+let p6 = new Player("F", z2, 2);
+
+let p7 = new Player("G", z3, 3);
+
+let p8 = new Player("H", z4, 22);
+let p9 = new Player("I", z4, 22);
+let p10 = new Player("J", z4, 14);
+
+let p11 = new Player("K", z5, 27);
+let p12 = new Player("L", z5, 11);
+let p13 = new Player("M", z5, 24);
+let p14 = new Player("N", z5, 19);
+
+let p15 = new Player("O", z6, 29);
+let p16 = new Player("P", z6, 12);
+let p17 = new Player("Q", z6, 17);
+let p18 = new Player("R", z6, 11);
+let p19 = new Player("S", z6, 23);
+let p20 = new Player("T", z6, 29);
+let p21 = new Player("U", z6, 14);
+
+let p22 = new Player("V", z7, 14);
+let p23 = new Player("W", z7, 15);
+let p24 = new Player("X", z7, 28);
+let p25 = new Player("Y", z7, 29);
+let p26 = new Player("Z", z7, 13);
 
 d("Affichage des joueurs par zone");
+z1.displayList();
 z2.displayList();
 z3.displayList();
+z4.displayList();
+z5.displayList();
+z6.displayList();
+z7.displayList();
 
 d("Affichage des données à envoyer pour le classement par zone");
 z2.displayDataToSend();
 z3.displayDataToSend();
+z4.displayDataToSend();
+z5.displayDataToSend();
+z6.displayDataToSend();
+z7.displayDataToSend();
+
+d("Affichage finale ZONE 1");
+z1.getDataToSend();
 
 /*------------------------------------------------------------------------*/
 /*                             END OF FILE                                */
