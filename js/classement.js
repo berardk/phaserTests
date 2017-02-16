@@ -2,7 +2,8 @@
 /*                        Declaration des objets                          */
 /*------------------------------------------------------------------------*/
 let Zone = function(nameZone,god) {
-	/* Attributes */
+	
+	/*-------------------- Attributes --------------------*/
 	this.name=nameZone;
 	this.god=god;
 	this.players=[]; // Liste triee
@@ -10,9 +11,7 @@ let Zone = function(nameZone,god) {
 	this.sonL=null;
 	this.sonR=null;
 	
-	/* Methods */
-//	this.nomFonction = function (){
-//  };
+	/*-------------------- Methods --------------------*/
 	this.setFather = function (father){
 		this.father=father;
 	};
@@ -34,17 +33,19 @@ let Zone = function(nameZone,god) {
 	this.isGod = function(){
 		return this.god;
 	};
+	
 	this.displayFamily = function (){
 		var display=this.name + "=";
-		//console.log("----------");
 		if(this.father != null){display+= "father:" + this.father.name + ":";}
 		if(this.sonL != null){display+= "sonL:" + this.sonL.name + ":";}
 		if(this.sonR != null){display+= "sonR:" + this.sonR.name + ":";}
 		display+= this.god;
 		console.log(display);
-		//sconsole.log("----------");
     };
     
+    /**
+     * Affichage de liste (liste des joueurs si param null
+     */
     this.displayList = function (list){
     	if (list==null) {
         	console.log(this.name + ":LIST_OF_PLAYERS_" + this.getPlayersCount());
@@ -56,12 +57,14 @@ let Zone = function(nameZone,god) {
     		console.log(this.name + ":LIST_");
         	for (let s of list)
         	{
-        		console.log(s.id + ":" + s.pos);
+        		console.log(s.player.id + ":" + s.player.pos + ":" + s.zone.name + ":" + s.count);
         	}
     	}
     };
     
-    // Méthodes pour le calcul du classement
+    /**
+     * Récupération du premier joueur
+     */
     this.getFirstPlayer = function(){
     	let min = 999999;
     	let first = null;
@@ -76,6 +79,9 @@ let Zone = function(nameZone,god) {
     	return first;
     };
 
+    /**
+     * Récupération du dernier joueur
+     */
     this.getLastPlayer = function(){
     	let max = -99999;
     	let last = null;
@@ -90,10 +96,16 @@ let Zone = function(nameZone,god) {
     	return last;
     };
 
+    /**
+     * Récupération du nombre de joueurs
+     */
     this.getPlayersCount = function(){
     	return this.players.length;
     };
     
+    /**
+     * Récupération des premiers et derniers joueurs pour chaque zone (récursif, à modifier pour la prise en compte de WEB-RTC)
+     */
     this.getDataToSend = function(){
     	let data = [];
     	if(this.god) {
@@ -102,11 +114,15 @@ let Zone = function(nameZone,god) {
     		let dataR = this.sonR.getDataToSend();
     		data = dataL.concat(dataR);
     		data.sort(this.comparePlayers);
-    		
+    		d("dataSentBy:" + this.name);
+        	this.displayList(data);
+        	this.sendClassementToChildren(data);
     	} else if(this.sonL == null && this.sonG == null) {
     		// Je suis une zone sans fils, j'envoie simplement les bonnes infos
-    		data.push(this.getFirstPlayer());
-    		data.push(this.getLastPlayer());
+    		if(this.getFirstPlayer()!= null)
+    			data.push(new Classement(this.getFirstPlayer(),this,this.getPlayersCount()));
+    		if(this.getLastPlayer()!= null)
+    			data.push(new Classement(this.getLastPlayer(),this,this.getPlayersCount()));
     	} else {
     		// Je suis une zone quelconque, je merge mes infos et ceux de mes fils avant de les envoyer
     		let dataL = this.sonL.getDataToSend();
@@ -116,19 +132,81 @@ let Zone = function(nameZone,god) {
     		dataLR.sort(this.comparePlayers);
     		
     		let dataF = [];
-    		dataF.push(this.getFirstPlayer());
-    		dataF.push(this.getLastPlayer());
+    		if(this.getFirstPlayer()!= null)
+    			dataF.push(new Classement(this.getFirstPlayer(),this,this.getPlayersCount()));
+    		if(this.getLastPlayer()!= null)
+    			dataF.push(new Classement(this.getLastPlayer(),this,this.getPlayersCount()));
     		
     		data = dataLR.concat(dataF);
     		data.sort(this.comparePlayers);
     	}
-    	d("dataSentBy:" + this.name);
-    	this.displayList(data);
+    	
+    	// Suppression des doublons pour les cas où le premier et le dernier joueur sont le même joueur (un joueur dans la zone)
+    	var cache = {};
+    	data = data.filter(function(elem,index,array){
+    		return cache[elem.player.id]?0:cache[elem.player.id]=1;
+    	});
+    	
     	return data;
     };
     
     this.comparePlayers = function(a,b) {
-    	return a.pos-b.pos;
+    	return a.player.pos-b.player.pos;
+    };
+    
+    /**
+     * Descente des informations classement aux fils (recursif, à modifier pour prendre en compte web-RTC
+     */
+    this.sendClassementToChildren = function(data) {
+    	let top=null;
+    	let topClass;
+    	let bottom=null;
+    	let bottomClass;
+    	
+    	for (var i=0; i <= data.length-1; i++)
+    	{
+    		if(top==null && data[i].zone.name==this.name) {
+    			top = data[i].player.pos;
+    			topClass = i+1;
+    		}
+    		if(top!=null && data[i].zone.name==this.name) {
+    			bottom = data[i].player.pos;
+    			bottomClass = i+1;
+    		}
+    	}
+    	
+    	if(!god) {
+    		this.generateClassementPlayer(topClass, bottomClass, data.length);
+    	}
+    	
+    	if(!(this.sonL == null && this.sonG == null)) {
+    		this.sonL.sendClassementToChildren(data);
+    		this.sonR.sendClassementToChildren(data);
+    	}
+    };
+    
+    this.generateClassementPlayer = function(topId, bottomId, size){
+    	d("AFFICHAGE DU CLASSEMENT FINAL ____ " + this.name);
+    	console.log("top:"+topId+"_bot:"+bottomId+"_size:"+size);
+    	let ax = 1;
+    	let ay;
+    	if(topId==1) {
+    		ay=1;
+    	} else {
+        	ay = topId*100/size | 0;
+    	}
+    	let bx=this.getPlayersCount();
+    	let by = bottomId*100/size | 0;
+    	let position;
+    	//console.log("ax:" + ax + "_ay:" + ay + "_bx:" + bx + "_by:" + by);
+    	let fctA = (by-ay)/(bx-ax) | 0;
+    	let fctB = by-fctA*bx | 0;
+    	this.players.sort(function(a, b){return a.pos-b.pos});
+    	for(var i=0; i <= this.players.length-1; i++) {
+    		position = (i+1)*fctA + fctB | 0; // FONCTION AFFINE
+    		//console.log("DEBUG_POS " + p.pos + " : " + fctA + " _ " + fctB);
+    		console.log("Joueur_" + this.players[i].id + " is " + position + "%");
+    	}
     };
     
     this.displayDataToSend = function(){
@@ -154,9 +232,9 @@ let Player = function(namePlayer,zone,position) {
     };
 }
 
-let Classement = function(f,l,c) {
-	this.first=f;
-	this.last=l;
+let Classement = function(p,z,c) {
+	this.player=p;
+	this.zone=z;
 	this.count=c;
 }
 
@@ -194,13 +272,13 @@ z3.setSonR(z7);
 z7.setFather(z3);
 
 d("Affichage des familles de zones");
-z1.displayFamily();
+/*z1.displayFamily();
 z2.displayFamily();
 z3.displayFamily();
 z4.displayFamily();
 z5.displayFamily();
 z6.displayFamily();
-z7.displayFamily();
+z7.displayFamily();*/
 
 d("Création des joueurs");
 let p1 = new Player("A", z2, 7);
@@ -210,7 +288,7 @@ let p4 = new Player("D", z2, 9);
 let p5 = new Player("E", z2, 8);
 let p6 = new Player("F", z2, 2);
 
-let p7 = new Player("G", z3, 3);
+//let p7 = new Player("G", z3, 3);
 
 let p8 = new Player("H", z4, 22);
 let p9 = new Player("I", z4, 22);
@@ -246,7 +324,7 @@ z7.displayList();
 
 d("Affichage des données à envoyer pour le classement par zone");
 z2.displayDataToSend();
-z3.displayDataToSend();
+//z3.displayDataToSend();
 z4.displayDataToSend();
 z5.displayDataToSend();
 z6.displayDataToSend();
