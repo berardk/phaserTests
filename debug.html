@@ -1,0 +1,50 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>DEBUG</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render});
+
+var areaTouchTest;
+
+function preload() {
+	
+}
+
+function create() {
+	var g = this.add.graphics(0, 0);
+	g.lineStyle(2, 0x0000FF, 0.5);
+	g.beginFill(0xFF8080, 1);
+	g.drawRect(this.world.centerX - 50, this.world.centerY - 50, 100, 100);
+	g.endFill();
+	g.inputEnabled = true;
+	g.events.onInputDown.add(function () {                console.log("Pressed ...");               }, this);
+	
+    //areaTouchTest = new Phaser.Rectangle(20,20,100,100);
+}
+
+function update() {
+
+}
+
+function render() {
+	//game.debug.geom(areaTouchTest,'#404AA4');
+}
+
+
+</script>
+
+</body>
+</html>
