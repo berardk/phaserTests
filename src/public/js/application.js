@@ -2,9 +2,9 @@ var player,cursors;
 
 var Application = {
 		preload: function () {
-			game.load.image('background', 'index/assets/sky.png');
-			game.load.image('floor', 'index/assets/grassGround.png');
-			game.load.image('player', 'index/assets/materia.png');
+			game.load.image('background', 'assets/sky.png');
+			game.load.image('floor', 'assets/grassGround.png');
+			game.load.image('player', 'assets/materia.png');
 		},
 		
 		create: function () {
