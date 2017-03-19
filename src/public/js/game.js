@@ -1,5 +1,5 @@
 const GAME_VIEW_WIDTH = 1000;
-const GAME_VIEW_HEIGHT = 600;
+const GAME_VIEW_HEIGHT = 500;
 
 var game = new Phaser.Game(GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, Phaser.AUTO, 'phaser');
 

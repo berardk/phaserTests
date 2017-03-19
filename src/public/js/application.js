@@ -8,6 +8,10 @@ var Application = {
 		},
 		
 		create: function () {
+			
+	        this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	        this.scale.updateLayout(true);
+	        
 			game.add.sprite(0, 0, 'background');
 			
 			floor = game.add.sprite(0,GAME_VIEW_HEIGHT-80,'floor');

@@ -8,23 +8,22 @@
 		<script type="text/javascript" src="js/tools.js"></script>
 		
 		<!-- Le titre de la page -->
-		<title>Index</title>
+		<title>Game</title>
+		<!-- Librairie PhaserJS pour la partie graphique -->
+		<script type="text/javascript" src="js/phaser.js"></script>
+		
+		<!-- Les différents fichiers JS liés à l'application -->
+		<script type="text/javascript" src="js/application.js"></script>
+		
+		<!-- Démarrage du jeu (le game va configurer les différents états du jeu et
+			 lancer l'état initial) -->
+		<script type="text/javascript" src="js/game.js"></script>
 	</head>
 	<body>
-		<div class="rek-container row">
+		<div class="row">
 			<div class="col-md-2 col-xs-2 rek-menu" data-include="nav"></div>
 			<div class="col-md-10 col-xs-10 rek-content">
-				<p>
-					Ceci est une application web en cours de création<br>
-					Technologies utilisées :
-					<ul>
-						<li>Javascript</li>
-						<li>PhaserJS</li>
-						<li>JQuery</li>
-					</ul>
-					Aucun framework n'est utilisé pour la structure du code (pour le moment)<br>
-					Copyright : Reeker
-				</p>
+				<div id="phaser"></div>
 			</div>
 		</div>
 	</body>
